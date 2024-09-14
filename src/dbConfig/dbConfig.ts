@@ -13,7 +13,7 @@ export const connectDB = async () => {
             process.exit();
         })
     } catch (error) {
-        console.error(`Error: ${error}`);
+        console.error(`Something went wrong: ${error}`);
         process.exit();
     }
 }
