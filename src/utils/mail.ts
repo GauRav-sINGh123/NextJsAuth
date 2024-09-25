@@ -1,42 +1,45 @@
+import { connectDB } from "@/dbConfig/dbConfig";
 import User from "@/models/userModel";
-import nodemailer from "nodemailer";
-import bcryptjs from 'bcryptjs'
+import { NextResponse, NextRequest } from "next/server";
+import bcrypt from 'bcryptjs'
+import { sendEmail } from "@/utils/mail";
 
-export const sendEmail=async ({email,emailType,userId}:any)=>{
-   
-    try {
-      const hashedToken = await bcryptjs.hash(userId.toString(),10)
-      if(emailType==="VERIFY"){
-        await User.findOneAndUpdate(userId,{
-          verifyToken:hashedToken,
-          verifyTokenExpiry:Date.now()+3600000
-        })
-       }else if(emailType==="RESET"){
-          await User.findOneAndUpdate(userId,{
-          forgotPasswordToken:hashedToken,
-          forgotPasswordExpiry:Date.now()+1600000
-        })
-       }
+connectDB()
 
-        const transporter = nodemailer.createTransport({
-            host: "smtp.ethereal.email",
-            port: 587,
-            secure: false,  
-            auth: {
-              user: "maddison53@ethereal.email",
-              pass: "jn7jnAPss4f63QBp6D",
-            },
-          });
-          const mailOptions={
-            from: 'gksingh947@gmail.com', 
-            to: email,
-            subject: emailType==="VERIFY"?"Verify your email":"Reset Password", 
-            html: "<b>Hello world?</b>", 
-          }
-          const mailResponse=await transporter.sendMail(mailOptions)
-          return  mailResponse
-    } catch (error:any) {
-       throw new Error(error.message)
+export async function POST(request: NextRequest) {
+ try {
+    const body = await request.json();
+    const { username, email, password } = body;
+    //Validation
+    if(!username || !email || !password) {
+        return  NextResponse.json({ error: "All fields are required" }, { status: 400 })
     }
-}
+    const user=await User.findOne({email})
+    if(user) {
+        return  NextResponse.json({ error: "User already exists" }, { status: 400 })
+    }
 
+    const salt=await bcrypt.genSalt(10)
+    const hashedPassword=await bcrypt.hash(password,salt)
+    const newUser=new User({
+    email,
+    username,
+    password:hashedPassword
+ })
+   const saveUser=await newUser.save()
+   console.log(saveUser)
+
+   //Send Verification Email
+     await sendEmail({email,emailType:"VERIFY",userId:saveUser._id})
+
+     return NextResponse.json({
+        message:"User created successfully",
+        success:true,
+        saveUser
+     })
+
+
+ } catch (error:any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+ }
+}
