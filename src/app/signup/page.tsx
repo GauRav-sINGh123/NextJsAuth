@@ -100,11 +100,10 @@ export default function Signup(){
               </div>
             ):(
               <button
-              disabled={buttonDisabled}
               className={`w-full px-4 py-2 cursor-pointer text-white bg-black rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition duration-150 ease-in-out`}
               type="submit"
             >
-              Sign Up
+              {buttonDisabled?"Please fill all the fields":"Sign Up"}
             </button>
             )
            }
