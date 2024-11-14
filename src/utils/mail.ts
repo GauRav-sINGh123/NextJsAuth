@@ -7,13 +7,17 @@ export const sendEmail=async ({email,emailType,userId}:any)=>{
       const hashedToken = await bcryptjs.hash(userId.toString(),10)
       if(emailType==="VERIFY"){
         await User.findOneAndUpdate(userId,{
+         $set:{
           verifyToken:hashedToken,
-          verifyTokenExpiry:Date.now()+3600000
+          verifyTokenExpiry:new Date(Date.now()+3600000)
+         }
         })
        }else if(emailType==="RESET"){
           await User.findOneAndUpdate(userId,{
-          forgotPasswordToken:hashedToken,
-          forgotPasswordExpiry:Date.now()+1600000
+          $set:{
+            forgotPasswordToken:hashedToken,
+            forgotPasswordExpiry:new Date(Date.now()+3600000)
+          }
         })
        }
        const transport = nodemailer.createTransport({
