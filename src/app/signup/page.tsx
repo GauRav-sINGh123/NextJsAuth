@@ -25,25 +25,29 @@ export default function Signup(){
   const handleInputData=(e:React.ChangeEvent<HTMLInputElement>)=>{
     setUser({...user,[e.target.name]:e.target.value})
   }
-  const onSignup=async()=>{
+  useEffect(()=>{
+    if(user.email.length>0 && user.password.length>0 && user.username.length>0){
+      setButtonDisabled(false)
+    }
+    else{
+      setButtonDisabled(true)
+    }
+  },[user])
+
+  const onSignup=async(e:React.FormEvent<HTMLFormElement>)=>{
+    e?.preventDefault();
+    setLoading(true)
     try {
     const response = await axios.post("/api/users/signup",user)
     console.log("Signup success",response.data)
     toast.success("Signup success")
+    setLoading(false)
     router.push('/login')
     } catch (error) {
       toast.error("Something went wrong while signing up")
     }
   }
-      useEffect(()=>{
-        if(user.email.length>0 && user.password.length>0 && user.username.length>0){
-          setButtonDisabled(false)
-        }
-        else{
-          setButtonDisabled(true)
-        }
-      },[user])
-    
+      
     console.log(user)
     return(
       <div className="min-h-screen flex items-center justify-center bg-black">
