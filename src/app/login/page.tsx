@@ -43,6 +43,7 @@ export default function Signup(){
     setLoading(false)
     router.push('/profile')
     } catch (error) {
+      setLoading(false)
       toast.error("Something went wrong while signing up")
     }
   }
